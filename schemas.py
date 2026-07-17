@@ -1,7 +1,7 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, validates, ValidationError
 
-from models import Workout, Exercise, WorkoutExercise
+from models import db,Workout, Exercise, WorkoutExercise
 
 
 class WorkoutExerciseSchema(SQLAlchemyAutoSchema):
@@ -10,7 +10,11 @@ class WorkoutExerciseSchema(SQLAlchemyAutoSchema):
         model = WorkoutExercise
         load_instance = True
         include_fk = True
+        sqla_session = db.session
 
+        workout_id = fields.Integer(load_only=True)
+        exercise_id = fields.Integer(load_only=True)
+        
     exercise = fields.Nested(
         "ExerciseSchema",
         only=("id", "name", "category", "equipment_needed")
@@ -22,14 +26,16 @@ class WorkoutSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Workout
         load_instance = True
+        sqla_session = db.session
 
     workout_exercises = fields.Nested(
         "WorkoutExerciseSchema",
-        many=True
+        many=True,
+        exclude=("exercise",)
     )
 
     @validates("duration_minutes")
-    def validate_duration(self, value):
+    def validate_duration(self, value, **kwargs):
 
         if value <= 0:
             raise ValidationError(
@@ -42,6 +48,7 @@ class ExerciseSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Exercise
         load_instance = True
+        sqla_session = db.session
 
     workout_exercises = fields.Nested(
         "WorkoutExerciseSchema",
@@ -50,7 +57,7 @@ class ExerciseSchema(SQLAlchemyAutoSchema):
     )
 
     @validates("name")
-    def validate_name(self, value):
+    def validate_name(self, value, **kwargs):
 
         if len(value.strip()) < 2:
             raise ValidationError(
