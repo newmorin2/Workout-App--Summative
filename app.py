@@ -39,6 +39,7 @@ def create_workout():
     try:
         data = request.get_json()
         workout = workout_schema.load(data)
+        db.session.add(workout)
         db.session.commit()
         return jsonify(workout_schema.dump(workout)), 201
 
@@ -74,7 +75,7 @@ def get_exercise(id):
 
     exercise = Exercise.query.get_or_404(id)
 
-    return exercise_schema.jsonify(exercise), 200
+    return jsonify(exercise_schema.dump(exercise)), 200
 
 
 @app.route("/exercises", methods=["POST"])
@@ -85,8 +86,7 @@ def create_exercise():
         db.session.add(exercise)
         db.session.commit()
 
-        return exercise_schema.jsonify(exercise), 201
-
+        return jsonify(exercise_schema.dump(exercise)), 201
 
     except Exception as e:
         db.session.rollback()
