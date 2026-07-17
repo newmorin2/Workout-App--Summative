@@ -118,7 +118,10 @@ def add_exercise_to_workout(workout_id, exercise_id):
         exercise = Exercise.query.get_or_404(exercise_id)
         data = request.get_json()
 
-        workout_exercise = workout_exercise_schema.load(data)
+        workout_exercise = workout_exercise_schema.load(
+            data,
+            partial=True
+        )
         workout_exercise.workout = workout
         workout_exercise.exercise = exercise
         db.session.add(workout_exercise)
